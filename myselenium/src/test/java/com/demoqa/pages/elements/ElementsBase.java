@@ -9,7 +9,10 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import junit.framework.Assert;
@@ -18,27 +21,33 @@ public class ElementsBase {
     private final WebDriver webDriver;
     private List<String> liTexts = Arrays.asList("Text Box", "Check Box", "Radio Button", "Web Tables", "Buttons",
             "Links", "Broken Links - Images", "Upload and Download", "Dynamic Properties");
-    private List<By> dropDownList;
+    private List<By> dropdownList;
+
+    @FindBy(xpath = "//div/div[contains(text(), 'Elements')]")
+    private WebElement elementsDropdown;
 
     public ElementsBase(WebDriver webDriver) {
         this.webDriver = webDriver;
-        this.dropDownList = liTexts.stream()
+        PageFactory.initElements(webDriver, this);
+
+        dropdownList = liTexts.stream()
                 .map(text -> By.xpath(
                         "//div[contains(@class, 'show')]//ul[contains(@class, 'menu-list')]//*[text()='" + text + "']"))
                 .collect(Collectors.toList());
     }
 
-    public void navigate() {
-        webDriver.findElement(By.xpath("//div/div[contains(text(), 'Elements')]")).click();
+    public void ToggleElementsDropdown() {
+        elementsDropdown.click();
+        WebDriverWait wait = new WebDriverWait(webDriver, Duration.ofSeconds(5));
+
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".element-list.collapse.show")));
     }
 
     public void validateOpenDropdown() {
-        List<WebElement> list = webDriver.findElement(By.className(".show .menu-list")).findElements(By.tagName("li"));
+        Assert.assertEquals(liTexts.size(), dropdownList.size());
 
-        Assert.assertEquals(liTexts.size(), list.size());
-
-        for (WebElement li : list) {
-            Assert.assertTrue(liTexts.contains(li.getText()));
+        for (By li : dropdownList) {
+            Assert.assertTrue(liTexts.contains(webDriver.findElement(li).getText()));
         }
     }
 
@@ -47,7 +56,7 @@ public class ElementsBase {
 
         for (int i = 0; i < liTexts.size(); i++) {
             if (liTexts.get(i).toLowerCase().contains(subMenuString.toLowerCase())) {
-                By locator = dropDownList.get(i);
+                By locator = dropdownList.get(i);
                 WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
                 element.click();
                 return;
