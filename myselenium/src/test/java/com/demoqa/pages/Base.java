@@ -14,7 +14,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 
+import org.testng.Reporter;
+
+import com.demoqa.utilities.LoggingHandler;
 import com.demoqa.utilities.PropertiesHandler;
+
+import ch.qos.logback.classic.LoggerContext;
 
 public class Base extends LoadableComponent<Base> {
     private static final Logger logger = LoggerFactory.getLogger(Base.class);
@@ -31,10 +36,6 @@ public class Base extends LoadableComponent<Base> {
         return webDriver;
     }
 
-    public static Logger getLogger() {
-        return logger;
-    }
-
     public void initPage() {
         initDriver();
         initBaseURL();
@@ -43,8 +44,13 @@ public class Base extends LoadableComponent<Base> {
         isLoaded();
     }
 
+    public static void log(String message) {
+        logger.info(message);
+        Reporter.log(message);
+    }
+
     private static void initDriver() {
-        logger.info("Starting WebDriver initialization");
+        log("Starting WebDriver initialization");
         try {
             Properties properties = new PropertiesHandler().loadEnvironment();
             String browser = properties.getProperty("browserType");
@@ -71,55 +77,54 @@ public class Base extends LoadableComponent<Base> {
                     break;
                 }
             }
-            logger.info("Successfully initialized WebDriver with: " + browser);
+            log("Successfully initialized WebDriver with: " + browser);
         } catch (IOException e) {
-            logger.error("Issues initializing WebDriver", e);
+            log("Issues initializing WebDriver");
             return;
         }
 
         webDriver.manage().window().maximize();
-        initBaseURL();
     }
 
     private static void initBaseURL() {
-        logger.info("Starting BaseURL initialization");
+        log("Starting BaseURL initialization");
         try {
             Properties properties = new PropertiesHandler().loadEnvironment();
             String baseURL = properties.getProperty("baseURL");
 
             if (baseURL.equals(null)) {
-                logger.error("baseURL not set in properties file");
+                log("baseURL not set in properties file");
             } else {
                 Base.baseURL = baseURL;
             }
-            logger.info("Successfully initialized BaseURL: " + Base.baseURL);
+            log("Successfully initialized BaseURL: " + Base.baseURL);
         } catch (IOException e) {
-            logger.error("Issues initializing BaseURL", e);
+            log("Issues initializing BaseURL");
             return;
         }
     }
 
     private static void configureImplicitWait() {
-        logger.info("Starting ImplicitWait initialization");
+        log("Starting ImplicitWait initialization");
         try {
             Properties properties = new PropertiesHandler().loadEnvironment();
             int timeout = Integer.parseInt(properties.getProperty("implicitWait"));
 
             if (baseURL.equals(null)) {
-                logger.error("ImplicitWait not set in properties file");
+                log("ImplicitWait not set in properties file");
             } else {
                 webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(timeout));
             }
-            logger.info("Successfully initialized BaseURL");
+            log("Successfully initialized BaseURL");
         } catch (IOException e) {
-            logger.error("Issues initializing BaseURL", e);
+            log("Issues initializing BaseURL");
             return;
         }
     }
 
     @Override
     protected void load() {
-        Base.logger.info("Loading baseURL page");
+        Base.log("Loading baseURL page");
         Base.webDriver.get(baseURL);
     }
 
@@ -128,12 +133,12 @@ public class Base extends LoadableComponent<Base> {
         String url = Base.webDriver.getCurrentUrl();
 
         Assert.assertTrue(url.endsWith("login"));
-        Base.logger.info("Successfully navigated to baseURL");
+        Base.log("Successfully navigated to baseURL");
     }
 
     public static void cleanup() {
-        logger.info("Cleaning up environment");
+        log("Cleaning up environment");
         webDriver.close();
-        logger.info("Successfully cleaned up");
+        log("Successfully cleaned up");
     }
 }

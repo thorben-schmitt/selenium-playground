@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.1.dtd" > -->
 
-<suite name="MySuite">
+<suite name="DemoQA Tests" verbose="1">
     <test name="AllTests">
+        <listeners>
+            <listener class-name="com.demoqa.utilities.TestLoggingListener"/>
+        </listeners>        
         <classes>
             <class name="com.demoqa.setup.TestSetup"/>
             <class name="com.demoqa.tests.DemoQATest"/>

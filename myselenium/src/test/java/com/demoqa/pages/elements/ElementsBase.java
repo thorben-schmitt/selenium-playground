@@ -12,12 +12,12 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 
-import junit.framework.Assert;
+import com.demoqa.pages.Base;
 
-public class ElementsBase {
+public class ElementsBase extends Base {
     private final WebDriver webDriver;
     private List<String> liTexts = Arrays.asList("Text Box", "Check Box", "Radio Button", "Web Tables", "Buttons",
             "Links", "Broken Links - Images", "Upload and Download", "Dynamic Properties");
@@ -26,8 +26,9 @@ public class ElementsBase {
     @FindBy(xpath = "//div/div[contains(text(), 'Elements')]")
     private WebElement elementsDropdown;
 
-    public ElementsBase(WebDriver webDriver) {
-        this.webDriver = webDriver;
+    public ElementsBase() {
+        super();
+        this.webDriver = super.getWebDriver();
         PageFactory.initElements(webDriver, this);
 
         dropdownList = liTexts.stream()
