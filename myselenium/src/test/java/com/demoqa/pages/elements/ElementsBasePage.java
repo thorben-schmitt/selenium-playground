@@ -17,7 +17,7 @@ import org.testng.Assert;
 
 import com.demoqa.pages.Base;
 
-public class ElementsBase extends Base {
+public class ElementsBasePage extends Base {
     private final WebDriver webDriver;
     private List<String> liTexts = Arrays.asList("Text Box", "Check Box", "Radio Button", "Web Tables", "Buttons",
             "Links", "Broken Links - Images", "Upload and Download", "Dynamic Properties");
@@ -26,7 +26,7 @@ public class ElementsBase extends Base {
     @FindBy(xpath = "//div/div[contains(text(), 'Elements')]")
     private WebElement elementsDropdown;
 
-    public ElementsBase() {
+    public ElementsBasePage() {
         super();
         this.webDriver = super.getWebDriver();
         PageFactory.initElements(webDriver, this);
@@ -60,6 +60,10 @@ public class ElementsBase extends Base {
                 By locator = dropdownList.get(i);
                 WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
                 element.click();
+
+                By cssSelector = By.cssSelector("#app > div > div > div > div.col-12.mt-4.col-md-6 > h1");
+                wait.until(ExpectedConditions.textToBePresentInElement(webDriver.findElement(cssSelector), liTexts.get(i)));
+
                 return;
             }
         }

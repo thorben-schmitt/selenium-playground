@@ -1,61 +1,137 @@
 package com.demoqa.utilities;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Properties;
+
+import org.apache.commons.io.FileUtils;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.IInvokedMethod;
 import org.testng.IInvokedMethodListener;
+import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 import org.testng.Reporter;
 
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.Status;
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
+import com.aventstack.extentreports.reporter.configuration.Theme;
+import com.demoqa.pages.Base;
+
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 
-public class LoggingHandler extends AppenderBase<ILoggingEvent> implements ITestListener, IInvokedMethodListener {
+public class LoggingHandler implements ITestListener, IInvokedMethodListener {
+    private static final Logger logger = LoggerFactory.getLogger(Base.class);
+    protected static ExtentReports extent;
+    protected static ExtentTest test;
 
-    @Override
-    public void onTestStart(ITestResult result) {
-        System.out.println("Test Started: " + result.getMethod().getMethodName());
+    public static void setupExtent() {
+        ExtentSparkReporter htmlReporter = new ExtentSparkReporter("target/test-output/ExtentReport.html");
+        htmlReporter.config().setDocumentTitle("Automation Report");
+        htmlReporter.config().setReportName("Selenium Test Results");
+        htmlReporter.config().setTheme(Theme.STANDARD);
+        extent = new ExtentReports();
+        extent.attachReporter(htmlReporter);
+    }
+
+    public static void log(String message) {
+        log(message, false);
+    }
+
+    public static void log(String message, boolean onlyTerminal) {
+        if (!onlyTerminal) {
+            logger.info(message);
+            Reporter.log(message);
+        } else {
+            logger.info(message);
+        }
     }
 
     @Override
     public void onTestSuccess(ITestResult result) {
-        System.out.println("Test Passed: " + result.getMethod().getMethodName());
+        test = extent.createTest(result.getName());
+        test.pass("Result as expected");
+        // test.log(Status.PASS, "Result as expected");
     }
 
     @Override
     public void onTestFailure(ITestResult result) {
-        System.out.println("Test Failed: " + result.getMethod().getMethodName());
+        test = extent.createTest(result.getName());
         Throwable throwable = result.getThrowable();
         if (throwable != null) {
-            System.out.println("Failure Reason: " + throwable.getMessage());
+            test.fail(throwable.getMessage());
+            // test.log(Status.FAIL, throwable.getMessage());
+        }
+
+        WebDriver driver = Base.getWebDriver();
+
+        try {
+            Properties properties = new PropertiesHandler().loadEnvironment();
+            File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+
+            String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+            String screenshotName = result.getName() + "_" + timestamp + ".png";
+            
+            String destPath = properties.getProperty("testResultsOutput") + "/media/" + screenshotName;
+            FileUtils.copyFile(screenshot, new File(destPath));
+
+            test.addScreenCaptureFromPath("media/" + screenshotName);
+        } catch (IOException e) {
+            test.warning("Could not attach screenshot: " + e.getMessage());
         }
     }
 
     @Override
     public void onTestSkipped(ITestResult result) {
-        System.out.println("Test Skipped: " + result.getMethod().getMethodName());
+        test = extent.createTest(result.getName());
+        test.skip("Skipped test");
+        // test.log(Status.SKIP, "Skipped test");
     }
-
-    // Other ITestListener methods can be overridden as needed
 
     @Override
     public void beforeInvocation(IInvokedMethod method, ITestResult testResult) {
-        System.out.println("Starting method: " + method.getTestMethod().getMethodName());
+        log("Starting " + method.getTestMethod().getMethodName());
     }
 
     @Override
     public void afterInvocation(IInvokedMethod method, ITestResult testResult) {
-        System.out.println("Finished method: " + method.getTestMethod().getMethodName());
+        log("Finished " + method.getTestMethod().getMethodName());
     }
 
     @Override
-    protected void append(ILoggingEvent event) {
-        String message = event.getFormattedMessage();
+    public void onFinish(ITestContext context) {
+        extent.flush();
+    }
 
-        // Optionally include log level, thread, etc.
-        String fullMessage = String.format("[%s] %s", event.getLevel(), message);
+    /*
+     * @Override
+     * protected void append(ILoggingEvent event) {
+     * String message = event.getFormattedMessage();
+     * 
+     * String fullMessage = String.format("[%s] %s", event.getLevel(), message);
+     * 
+     * Reporter.log(fullMessage, true);
+     * }
+     */
+    public static ExtentReports getExtent() {
+        return extent;
+    }
 
-        // true = also send to System.out
-        Reporter.log(fullMessage, true);
+    public static ExtentTest getTest() {
+        return test;
+    }
+
+    public static void setTest(ExtentTest test) {
+        LoggingHandler.test = test;
     }
 
 }
