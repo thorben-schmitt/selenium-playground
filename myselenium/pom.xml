@@ -74,9 +74,9 @@
               <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
             </suiteXmlFiles>
 
-            <redirectTestOutputToFile>false</redirectTestOutputToFile>
+            <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <printSummary>true</printSummary>
-            <useFile>false</useFile>
+            <useFile>true</useFile>
 
             <properties>
               <property>

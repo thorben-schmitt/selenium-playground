@@ -56,6 +56,10 @@ public class LoggingHandler implements ITestListener, IInvokedMethodListener {
         }
     }
 
+    public static void logStep(String message) {
+        test.info(message);
+    }
+
     @Override
     public void onTestSuccess(ITestResult result) {
         test = extent.createTest(result.getName());
@@ -80,7 +84,7 @@ public class LoggingHandler implements ITestListener, IInvokedMethodListener {
 
             String timestamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
             String screenshotName = result.getName() + "_" + timestamp + ".png";
-            
+
             String destPath = properties.getProperty("testResultsOutput") + "/media/" + screenshotName;
             FileUtils.copyFile(screenshot, new File(destPath));
 

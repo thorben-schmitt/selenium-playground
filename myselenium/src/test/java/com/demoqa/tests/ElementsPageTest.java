@@ -23,7 +23,6 @@ public class ElementsPageTest extends TestSetup {
     public void openElementsDropdownAndVerify() {
         elementsBase.ToggleElementsDropdown();
         elementsBase.validateOpenDropdown();
-        LoggingHandler.log("Test");
     }
 
     @Test
@@ -36,6 +35,7 @@ public class ElementsPageTest extends TestSetup {
 
         ElementsTextBoxPage textBoxPage = new ElementsTextBoxPage();
         textBoxPage.shouldBeVisible();
+        LoggingHandler.logStep("Text Box ");
         textBoxPage.fillForm(uname, email, currAddress, permAddress);
         textBoxPage.submitForm();
         textBoxPage.validateOutput(uname, email, currAddress, permAddress);
